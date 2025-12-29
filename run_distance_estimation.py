@@ -11,7 +11,7 @@ def main():
     p.add_argument("--depth-checkpoint", default=None, help="Path to Depth Anything v2 checkpoint (required for custom)")
     p.add_argument("--input", required=True, help="Input video path")
     p.add_argument("--out-video", default="output_annotated.mp4", help="Annotated output video")
-    p.add_argument("--out-csv", default="distances.csv", help="CSV file with distances per object per frame")
+    p.add_argument("--out-csv", default=None, help="CSV file with distances per object per frame (optional)")
     p.add_argument("--device", default="cpu", help="torch device (cpu or cuda)")
     p.add_argument("--conf", type=float, default=0.25, help="YOLO detection confidence threshold")
     args = p.parse_args()

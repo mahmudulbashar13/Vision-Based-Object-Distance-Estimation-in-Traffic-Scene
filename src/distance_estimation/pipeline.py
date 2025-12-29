@@ -32,7 +32,7 @@ class DistanceEstimationPipeline:
             return float('nan')
         return float(np.median(crop))
 
-    def run(self, input_video: str, output_video: str, output_csv: str, conf: float = 0.25):
+    def run(self, input_video: str, output_video: str, output_csv: Optional[str] = None, conf: float = 0.25):
         """Process video and produce annotated output + distance CSV."""
         cap = cv2.VideoCapture(input_video)
         if not cap.isOpened():
@@ -43,9 +43,12 @@ class DistanceEstimationPipeline:
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         out = cv2.VideoWriter(output_video, fourcc, fps, (w, h))
 
-        csv_file = open(output_csv, 'w', newline='')
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['frame', 'track_id', 'class_id', 'confidence', 'x1', 'y1', 'x2', 'y2', 'distance_m'])
+        csv_file = None
+        csv_writer = None
+        if output_csv:
+            csv_file = open(output_csv, 'w', newline='')
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['frame', 'track_id', 'class_id', 'confidence', 'x1', 'y1', 'x2', 'y2', 'distance_m'])
 
         frame_idx = 0
         while True:
@@ -84,11 +87,25 @@ class DistanceEstimationPipeline:
                 
                 # annotate frame
                 x1, y1, x2, y2 = bbox
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                label = f"ID:{tr_id} C:{cls} D:{distance:.2f}m"
-                cv2.putText(frame, label, (x1, max(0, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                text = f'ID: {tr_id}, Dis: {distance:.2f} m'
+
+                # Annotate depth and track ID on the frame
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.5
+                font_thickness = 1
+                text_size = cv2.getTextSize(text, font, font_scale, font_thickness)[0]
+                text_x = x1
+                text_y = y1 - 10
+                rect_x1 = text_x - 5
+                rect_y1 = text_y - text_size[1] - 5
+                rect_x2 = text_x + text_size[0] + 5
+                rect_y2 = text_y + 5
+                cv2.rectangle(frame, (rect_x1, rect_y1), (rect_x2, rect_y2), (0, 0, 0), -1)
+                cv2.putText(frame, text, (text_x, text_y), font, font_scale, (255, 255, 255), font_thickness)
                 # write csv
-                csv_writer.writerow([frame_idx, tr_id, cls, confd, x1, y1, x2, y2, distance])
+                if csv_writer:
+                    csv_writer.writerow([frame_idx, tr_id, cls, confd, x1, y1, x2, y2, distance])
 
             out.write(frame)
             frame_idx += 1
@@ -97,5 +114,6 @@ class DistanceEstimationPipeline:
 
         cap.release()
         out.release()
-        csv_file.close()
-        print(f"Completed: {output_video} and {output_csv}")
+        if csv_file:
+            csv_file.close()
+        print(f"Completed: {output_video}" + (f" and {output_csv}" if output_csv else ""))

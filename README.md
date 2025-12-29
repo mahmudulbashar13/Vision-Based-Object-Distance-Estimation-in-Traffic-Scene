@@ -66,7 +66,7 @@ python run_distance_estimation.py \
 - `--depth-checkpoint`: Path to Depth Anything v2 checkpoint (required if `--depth-type custom`)
 - `--input`: Input video file path (required)
 - `--out-video`: Output annotated video path (default: `output_annotated.mp4`)
-- `--out-csv`: Output CSV path (default: `distances.csv`)
+- `--out-csv`: Output CSV path (optional, default: None)
 - `--device`: PyTorch device (`cpu` or `cuda`, default: `cpu`)
 - `--conf`: Detection confidence threshold (default: `0.25`)
 
@@ -75,10 +75,9 @@ python run_distance_estimation.py \
 ### Annotated Video
 - Bounding boxes around detected objects
 - Track IDs (persistent across frames)
-- Class labels (vehicle, pedestrian, etc.)
 - Estimated distances in meters
 
-### CSV File
+### CSV File (optional)
 Columns:
 - `frame`: Frame index
 - `track_id`: Persistent object ID
